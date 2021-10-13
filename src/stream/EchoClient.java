@@ -33,10 +33,39 @@ public class EchoClient {
         try {
       	    // creation socket ==> connexion
       	    echoSocket = new Socket(args[0],new Integer(args[1]).intValue());
-	    socIn = new BufferedReader(
+	        socIn = new BufferedReader(
 	    		          new InputStreamReader(echoSocket.getInputStream()));    
-	    socOut= new PrintStream(echoSocket.getOutputStream());
-	    stdIn = new BufferedReader(new InputStreamReader(System.in));
+	        socOut= new PrintStream(echoSocket.getOutputStream());
+	        stdIn = new BufferedReader(new InputStreamReader(System.in));
+
+	        //Authentification :
+            //Basic authentication
+            while (true)
+            {
+                System.out.println("login: ");
+                String login = stdIn.readLine();
+                System.out.println("password: ");
+                String password = stdIn.readLine();
+                socOut.println(login);
+                socOut.println(password);
+                String response = socIn.readLine();
+                if (response.compareTo("Access confirmed") == 0)
+                {
+                    System.out.println(response);
+                    //ask to who he wants to talk : 
+                    System.out.println("With which user do you want to talk ?");
+                    String idDestinataire = stdIn.readLine();
+                    socOut.println(idDestinataire);
+                    
+                    break;
+                }
+                else
+                {
+                    System.out.println("Wrong login or password, try again");
+                }
+            }
+
+
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host:" + args[0]);
             System.exit(1);
