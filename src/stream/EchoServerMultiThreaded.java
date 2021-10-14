@@ -9,6 +9,8 @@ package stream;
 
 import java.net.*;
 import java.util.*;
+import Model.ConversationGroupe;
+
 public class EchoServerMultiThreaded  {
   
  	/**
@@ -16,11 +18,12 @@ public class EchoServerMultiThreaded  {
 	* @param EchoServer port
   	* 
   	**/
-       public static void main(String args[]){ 
+    public static void main(String args[]){ 
         ServerSocket listenSocket;
         List<Socket> SocketsList = new ArrayList<Socket>();
         //List<ClientThread> ClientThreadList = new ArrayList<ClientThread>();
         Map<String, Socket> dicSocket = new HashMap<>(); 
+        List<ConversationGroupe> conversationGroupes = new ArrayList<>();
         
         if (args.length != 1) {
               System.out.println("Usage: java EchoServer <EchoServer port>");
@@ -33,7 +36,7 @@ public class EchoServerMultiThreaded  {
                 Socket clientSocket = listenSocket.accept();
                 SocketsList.add(clientSocket);
                 //System.out.println("Connexion from:" + clientSocket.getInetAddress());
-                ClientThread ct = new ClientThread(clientSocket , SocketsList,dicSocket);
+                ClientThread ct = new ClientThread(clientSocket , SocketsList, dicSocket, conversationGroupes);
                 //ClientThreadList.add(ct);
                 ct.start();
                 /*

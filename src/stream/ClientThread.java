@@ -22,11 +22,13 @@ public class ClientThread extends Thread {
 	private Map<String, Socket> dicSocket = new HashMap<>();
 	private Service service;
 	private User connectedClient = null;
+	List<ConversationGroupe> listConv;
 
-	ClientThread(Socket s, List<Socket> SocketsList, Map<String, Socket> dicSocket) {
+	ClientThread(Socket s, List<Socket> SocketsList, Map<String, Socket> dicSocket, List<ConversationGroupe> conversationGroupe) {
 		this.clientSocket = s;
 		this.SocketsList = SocketsList;
 		this.dicSocket = dicSocket;
+		this.listConv = conversationGroupe;
 	}
 
 	public void changeId(String id) {
@@ -80,6 +82,12 @@ public class ClientThread extends Thread {
 
 			while (true) {
 				String[] idsDestinataires = socIn.readLine().split(",");
+				List<String> idsUsersInGroup = new ArrayList<>();
+				for(String s : idsDestinataires){
+					idsUsersInGroup.add(s);
+				}
+				idsUsersInGroup.add(id);
+				
 				if(isInputCorrect(idsDestinataires)){
 					socOut.println("Input is good");
 					dicSocket.put(id, clientSocket);
@@ -91,17 +99,45 @@ public class ClientThread extends Thread {
 							listParticipants.put(idDestinataire, SocketParticipant);
 						}
 					}
-					conv = new ConversationGroupe(listParticipants);
+
+
 					//Faire aussi l'appel au service loadMessages
-					List<String> history = service.loadMessages(id, Arrays.asList(idsDestinataires));
+					String filename = null;
+					List<String> history = service.loadMessages(id, Arrays.asList(idsDestinataires),filename);
 					if(history != null){
-						System.out.println("History exists");
 						displayMessages(history, socOut);
 					}
-					else{
-						System.out.println("History doesn't exist");
+
+					try {
+
+						//!!!!\ ajouter la ligne au fichier index.csv
+						PrintStream file;
+						if (filename != null)
+						{
+							file = new PrintStream("../bdd/conversations/"+filename);
+						}
+						else {
+							UUID uuid = UUID.randomUUID();
+							File newFile = new File("../bdd/conversations/"+uuid.toString() + ".txt");
+							newFile.createNewFile();
+							file = new PrintStream("../bdd/conversations/"+newFile.getName());
+						}
+						
+						conv = findConversationGroup(idsUsersInGroup);
+						if (conv == null)
+						{
+							conv = new ConversationGroupe(listParticipants,file);
+						}
+							
+						connectedClient.setConversationGroupe(conv);
+						
+						break;
 					}
-					break;
+					catch (Exception e)
+					{
+						System.out.println("Message de l'exception : " + e.getMessage());
+					}
+					
 				}
 				
 				socOut.println("Non valid user");
@@ -109,17 +145,20 @@ public class ClientThread extends Thread {
 			}
 
 			while (true) {
+
+				//list des ids dans laquelle je suis correspond à la liste des currentsGroupe de chaque destinataire
+				//si une liste d'un destinataire diffère de ma liste alors j'envoie rien à personne par contre j'écris dans 
+				//historique
 				String line = socIn.readLine();
 				for(Socket SocketDest : conv.getRecipients(id)){
 					PrintStream SocOutOtherClient = new PrintStream(SocketDest.getOutputStream());
 					SocOutOtherClient.println("[" + connectedClient.getPseudo() + "]: " + line);
 				}
-				// socOut.println(line);
-				// send to all other clients in the group the message delivered
-				/*
-				 * for(Socket tmp : SocketsList){ if(tmp!=clientSocket){ PrintStream tmpSocOut =
-				 * new PrintStream(tmp.getOutputStream()); tmpSocOut.println(line); } }
-				 */
+
+				//ecrire dans le fichier d'historique le message envoyé
+
+
+
 			}
 		} catch (Exception e) {
 			System.err.println("Error in EchoServer:" + e);
@@ -151,6 +190,18 @@ public class ClientThread extends Thread {
 		for(String msg : listMessages){
 			socOut.println(msg);
 		}
+	}
+
+	public ConversationGroupe findConversationGroup(List<String> listIds){
+		for(ConversationGroupe convG : listConv){
+			var idSet = convG.getDicParticipantsInConversation().keySet();
+
+			Set<String> setListIds = new HashSet<>(listIds);
+
+			if(idSet.equals(setListIds)) return convG;
+		}
+		return null;
+		
 	}
 
 }

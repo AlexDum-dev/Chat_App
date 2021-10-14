@@ -6,10 +6,12 @@ import java.util.*;
 public class ConversationGroupe {
 
     private Map<String, Socket> dicParticipantsInConversation = new HashMap<>();
+    private PrintStream history; 
     
     //on creation of the conversation she has to be persisted
-    public ConversationGroupe(Map<String, Socket> dicParticipantsInConversation){
+    public ConversationGroupe(Map<String, Socket> dicParticipantsInConversation, PrintStream file){
         this.dicParticipantsInConversation = dicParticipantsInConversation;
+        this.history = file;
     }
 
     public Map<String, Socket> getDicParticipantsInConversation() {

@@ -4,7 +4,7 @@ public class User {
     private String pseudo;
     private String password;
     private String id;
-
+    private ConversationGroupe currentConversationGroupe;
 
     public User(String pseudo, String password, String id){
         this.pseudo = pseudo;
@@ -24,5 +24,16 @@ public class User {
     public String getId() {
         return id;
     }
+
+    public ConversationGroupe getCurrentConversationGroupe()
+    {
+        return currentConversationGroupe;
+    }
+
+    public void setConversationGroupe(ConversationGroupe currentConversationGroupe)
+    {
+        this.currentConversationGroupe = currentConversationGroupe;
+    }
+
 
 }

@@ -60,7 +60,7 @@ public class Service {
         return result;
     }
 
-    public List<String> loadMessages(String idClient, List<String> participantIds)
+    public List<String> loadMessages(String idClient, List<String> participantIds, String filename)
     {
         List<InfoConversation> infosConversations = data.getInfosConversations();
         List<String> participants = new ArrayList<>();
@@ -92,6 +92,7 @@ public class Service {
                 {
                     System.out.println("Conversation exists");
                     try {
+                        filename = tmp.getFilename();
                         return getMessages(tmp.getFilename());
                     }
                     catch (IOException ex) {
