@@ -1,4 +1,4 @@
-package stream;
+package Model;
 
 import java.net.Socket;
 
@@ -10,7 +10,7 @@ public class Conversation {
     private Socket socketSecondClient;
 
 
-    Conversation(String idFirstClient, String idSecondClient, Socket socketFirstClient,
+    public Conversation(String idFirstClient, String idSecondClient, Socket socketFirstClient,
     Socket socketSecondClient){
         this.idFirstClient = idFirstClient;
         this.idSecondClient = idSecondClient;
