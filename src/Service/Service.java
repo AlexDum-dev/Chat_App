@@ -14,6 +14,16 @@ public class Service {
     }
 
 
+    public Data getData() {
+        return data;
+    }
+
+
+    public void setData(Data data) {
+        this.data = data;
+    }
+
+
     /**
      * Get the id of the person given its pseudo
      * @param : Strng pseudo de l'utilisateur
@@ -29,6 +39,30 @@ public class Service {
             }
         }
         return id;
+    }
+
+    public User getUserById(String id){
+        List<User> listUsers = data.getUsers();
+        for(User u : listUsers){
+            if(id.compareTo(u.getId()) == 0) {
+                if(u.getCurrentConversationGroupe() == null) System.out.println("[Service.getUserById] : curentConv null");
+                return u;
+            }
+        }
+
+        return null;
+
+    }
+
+    public void updateUserIntheDatabase(User user){
+        List<User> listUsers = data.getUsers();
+        for(int i=0;i<listUsers.size();i++){
+            if(user.getId().compareTo(listUsers.get(i).getId()) == 0){
+                data.changeUser(user, i);
+                return;
+            }
+        }
+
     }
 
     /**
@@ -50,7 +84,15 @@ public class Service {
 
     public List<String> getMessages(String filename) throws IOException
     {
-        BufferedReader messages = new BufferedReader(new FileReader("../bdd/conversations/" + filename));
+        BufferedReader messages;
+        try{
+            messages = new BufferedReader(new FileReader("../bdd/conversations/" + filename));
+        } catch(IOException e){
+            System.out.println("[Service.getConversationFilename] can't read " + filename);
+            return null;
+        }
+        
+        
         String messageLine;
         List<String> result = new ArrayList<>();        
         while ((messageLine = messages.readLine()) != null){
@@ -58,9 +100,10 @@ public class Service {
         }
         messages.close();
         return result;
+        
     }
 
-    public List<String> loadMessages(String idClient, List<String> participantIds, String filename)
+    public List<String> loadMessages(String idClient, List<String> participantIds)
     {
         List<InfoConversation> infosConversations = data.getInfosConversations();
         List<String> participants = new ArrayList<>();
@@ -71,28 +114,22 @@ public class Service {
         }
         //participantIds.add(idClient);
         //Check if a conversation exists
-        System.out.println("ParticipantIds : " + infosConversations.get(0).getParticipantIds().toString());
         for (InfoConversation tmp : infosConversations)
         {
             List<String> ids = tmp.getParticipantIds();
-            System.out.println("ParticipantIds : " + ids.toString());
             if (ids.size() == participants.size())
             {
-                System.out.println("Participant number is good");
                 Boolean conversationExists = true;
                 for (String id : participants)
                 {
                     if (!ids.contains(id))
                     {
-                        System.out.println("The id list of the conversation doesn't contain the id");
                         conversationExists = false;
                     }
                 }
                 if (conversationExists)
                 {
-                    System.out.println("Conversation exists");
                     try {
-                        filename = tmp.getFilename();
                         return getMessages(tmp.getFilename());
                     }
                     catch (IOException ex) {
@@ -121,4 +158,66 @@ public class Service {
         }
         return true;        
     }
+
+
+    public String getConversationFilename(Object[] participantIds) throws IOException
+    {
+        BufferedReader index;
+        String[] participantsIds = new String[participantIds.length];
+        for (int i = 0; i < participantIds.length; i++)
+        {
+            participantsIds[i] = String.valueOf(participantIds[i]);
+        }
+
+        if(participantsIds == null) System.out.println("PARTICIPANT IDS NULL");
+        System.out.println("[Service.getConversationFilename] participantsIds : " + participantsIds[0] +" "+participantsIds[1]);
+        try {
+            index = new BufferedReader(new FileReader("../bdd/conversations/index.csv"));
+        }
+        catch (IOException ex)
+        {
+            System.out.println("[Service.getConversationFilename] can't read index.csv");
+            return null;
+        }  
+        
+        String conversationEntry;
+
+        while ((conversationEntry = index.readLine()) != null)
+        {
+            String[] line = conversationEntry.split(",");
+            System.out.println("[Service.getConversationFilename] conversationEntry = " + conversationEntry);
+            Boolean conversationExists = true;
+            if (line.length != participantsIds.length + 1) conversationExists = false;
+            for (String id : participantsIds)
+            {
+                if (!Arrays.asList(line).contains(id))
+                {
+                    conversationExists = false;
+                }
+            }
+            if (conversationExists)
+            {
+                System.out.println("[Service.getConversationFilename] The conversation has been found. return value is : " + line[0]);
+                index.close();
+                return line[0];
+            }
+        }
+
+        System.out.println("[Service.getConversationFilename] The entire file has been read, no conversation exists in index.csv");
+        
+        index.close();
+        return null;
+
+    }
+
+    public void persistMessage(String message, String filename) throws IOException
+    {
+        System.out.println("[Service.persistMessage] message : " + message);
+        FileWriter historyFile = new FileWriter("../bdd/conversations/" + filename,true);        
+        historyFile.write(message + "\r\n");
+        historyFile.close();
+    }
+
+
+
 }

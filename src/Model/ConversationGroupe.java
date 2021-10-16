@@ -6,12 +6,10 @@ import java.util.*;
 public class ConversationGroupe {
 
     private Map<String, Socket> dicParticipantsInConversation = new HashMap<>();
-    private PrintStream history; 
     
     //on creation of the conversation she has to be persisted
-    public ConversationGroupe(Map<String, Socket> dicParticipantsInConversation, PrintStream file){
+    public ConversationGroupe(Map<String, Socket> dicParticipantsInConversation){
         this.dicParticipantsInConversation = dicParticipantsInConversation;
-        this.history = file;
     }
 
     public Map<String, Socket> getDicParticipantsInConversation() {
@@ -24,14 +22,18 @@ public class ConversationGroupe {
      * @return List<Socket> 
      * @param : id representing the person who send the message
      */
-    public List<Socket> getRecipients(String id){
-        List<Socket> listSocketRecipients = new ArrayList<>();
-
+    public Map<String,Socket> getRecipients(String id){
+        Map<String, Socket> dicRecipients = new HashMap<>();
         for(var pair : dicParticipantsInConversation.entrySet()){
             if(id.compareTo(pair.getKey()) != 0){
-                listSocketRecipients.add(pair.getValue());
+                dicRecipients.put(pair.getKey(), pair.getValue());
             }
         }
-        return listSocketRecipients;
+        return dicRecipients;
     }
+
+    public void addSocketToParticipant(String id, Socket s){
+        dicParticipantsInConversation.put(id, s);
+    }
+
 }

@@ -7,23 +7,27 @@
 
 package stream;
 
+import java.io.IOException;
 import java.net.*;
 import java.util.*;
 import Model.ConversationGroupe;
+import Service.Service;
 
 public class EchoServerMultiThreaded  {
   
  	/**
   	* main method
 	* @param EchoServer port
+ 	 * @throws IOException
   	* 
   	**/
-    public static void main(String args[]){ 
+    public static void main(String args[]) throws IOException{ 
         ServerSocket listenSocket;
         List<Socket> SocketsList = new ArrayList<Socket>();
         //List<ClientThread> ClientThreadList = new ArrayList<ClientThread>();
         Map<String, Socket> dicSocket = new HashMap<>(); 
         List<ConversationGroupe> conversationGroupes = new ArrayList<>();
+        Service service = new Service();
         
         if (args.length != 1) {
               System.out.println("Usage: java EchoServer <EchoServer port>");
@@ -36,7 +40,7 @@ public class EchoServerMultiThreaded  {
                 Socket clientSocket = listenSocket.accept();
                 SocketsList.add(clientSocket);
                 //System.out.println("Connexion from:" + clientSocket.getInetAddress());
-                ClientThread ct = new ClientThread(clientSocket , SocketsList, dicSocket, conversationGroupes);
+                ClientThread ct = new ClientThread(clientSocket , SocketsList, dicSocket, conversationGroupes,service);
                 //ClientThreadList.add(ct);
                 ct.start();
                 /*

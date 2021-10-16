@@ -67,4 +67,13 @@ public class Data {
     {
         return infosConversations;
     }
+
+    public void changeUser(User u, int index){
+        System.out.println("Length of data user before removing : "+this.getUsers().size());
+        this.users.remove(index);
+        System.out.println("Length of data user after removing : "+this.getUsers().size());
+        this.users.add(u);
+        System.out.println("Length of data user after adding : "+this.getUsers().size());
+        if(this.users.get(3).getCurrentConversationGroupe() == null) System.out.println("[Data.changeUser : conv is null");
+    }
 }

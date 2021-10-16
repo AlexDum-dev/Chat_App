@@ -56,8 +56,9 @@ public class EchoClient {
                     while (true){
                         System.out.println("With which user(s) do you want to talk ?");
                         System.out.println("(Specify each person with comma separated please.)");
-                        String idsDestinataires = stdIn.readLine();
-                        socOut.println(idsDestinataires);
+                        String pseudosDestinataires = stdIn.readLine();
+                        //String idsDestinataires = stdIn.readLine();
+                        socOut.println(pseudosDestinataires);
                         if (socIn.readLine().compareTo("Input is good") == 0)
                         {
                             break;

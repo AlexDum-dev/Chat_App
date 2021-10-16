@@ -10,6 +10,7 @@ public class User {
         this.pseudo = pseudo;
         this.password = password;
         this.id = id;
+        this.currentConversationGroupe = null;
     }
 
 
@@ -30,9 +31,10 @@ public class User {
         return currentConversationGroupe;
     }
 
-    public void setConversationGroupe(ConversationGroupe currentConversationGroupe)
+    public void setConversationGroupe(ConversationGroupe conv)
     {
-        this.currentConversationGroupe = currentConversationGroupe;
+        this.currentConversationGroupe = conv;
+        System.out.println("Conv has been change for the user : "+this.id);
     }
 
 

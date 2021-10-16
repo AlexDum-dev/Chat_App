@@ -1,2 +1,6 @@
-[hlebon]: ca dit quoi le sang
-[adumarquez]: on est la
+[adumarquez] coucou
+[hlebon] coucou
+[hlebon]: message de h vers a
+[adumarquez]: message de a vers h
+[hlebon]: aaaaaa
+[hlebon]: test

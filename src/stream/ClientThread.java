@@ -23,12 +23,15 @@ public class ClientThread extends Thread {
 	private Service service;
 	private User connectedClient = null;
 	List<ConversationGroupe> listConv;
+	private String historyFilename = null;
+	private List<String> idsDest;
 
-	ClientThread(Socket s, List<Socket> SocketsList, Map<String, Socket> dicSocket, List<ConversationGroupe> conversationGroupe) {
+	ClientThread(Socket s, List<Socket> SocketsList, Map<String, Socket> dicSocket, List<ConversationGroupe> conversationGroupe, Service service) {
 		this.clientSocket = s;
 		this.SocketsList = SocketsList;
 		this.dicSocket = dicSocket;
 		this.listConv = conversationGroupe;
+		this.service = service;
 	}
 
 	public void changeId(String id) {
@@ -41,13 +44,8 @@ public class ClientThread extends Thread {
 	 * @param clientSocket the client socket
 	 **/
 	public void run() {
-		try {
-			service = new Service();
-		}
-		catch (IOException ex){
-			System.err.println("Error in ClientThread: " + ex.getMessage());
-			System.exit(1);
-		}
+		ConversationGroupe conv;
+		
 		try {
 			BufferedReader socIn = null;
 			socIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -60,7 +58,7 @@ public class ClientThread extends Thread {
 
 			// Authentication process
 			Boolean authorizedAcess;
-			ConversationGroupe conv;
+			//ConversationGroupe conv;
 			String login,password;
 			while (true) {
 				login = socIn.readLine();
@@ -73,7 +71,7 @@ public class ClientThread extends Thread {
 					socOut.println("Access confirmed");
 					SocketsList.add(clientSocket);
 					System.out.println("Connexion from:" + clientSocket.getInetAddress());
-					//dicSocket.put(id, clientSocket);
+					dicSocket.put(id, clientSocket);
 					break;
 				} else {
 					socOut.println("Access denied");
@@ -81,56 +79,70 @@ public class ClientThread extends Thread {
 			}
 
 			while (true) {
-				String[] idsDestinataires = socIn.readLine().split(",");
+				String[] pseudosDestinataire = socIn.readLine().split(",");
+				String[] idsDestinataires = getAllIds(pseudosDestinataire);
+				//String[] idsDestinataires = socIn.readLine().split(",");
 				List<String> idsUsersInGroup = new ArrayList<>();
 				for(String s : idsDestinataires){
 					idsUsersInGroup.add(s);
 				}
 				idsUsersInGroup.add(id);
+				this.idsDest = idsUsersInGroup;
 				
 				if(isInputCorrect(idsDestinataires)){
 					socOut.println("Input is good");
-					dicSocket.put(id, clientSocket);
+					//dicSocket.put(id, clientSocket);
 					Map<String, Socket> listParticipants = new HashMap<>();
 				
 					for(String idDestinataire : idsDestinataires){
 						Socket SocketParticipant = isConnected(idDestinataire);
+						/*
 						if(SocketParticipant != null){
 							listParticipants.put(idDestinataire, SocketParticipant);
 						}
+						*/
+						listParticipants.put(idDestinataire, SocketParticipant);
 					}
+					listParticipants.put(id, clientSocket); //put the actual client
 
-
-					//Faire aussi l'appel au service loadMessages
-					String filename = null;
-					List<String> history = service.loadMessages(id, Arrays.asList(idsDestinataires),filename);
+					String filename = service.getConversationFilename(listParticipants.keySet().toArray());
+					List<String> history = service.loadMessages(id, Arrays.asList(idsDestinataires));
 					if(history != null){
 						displayMessages(history, socOut);
 					}
+					historyFilename = filename;
 
 					try {
-
-						//!!!!\ ajouter la ligne au fichier index.csv
-						PrintStream file;
-						if (filename != null)
+						if (filename == null) 
 						{
-							file = new PrintStream("../bdd/conversations/"+filename);
-						}
-						else {
 							UUID uuid = UUID.randomUUID();
 							File newFile = new File("../bdd/conversations/"+uuid.toString() + ".txt");
 							newFile.createNewFile();
-							file = new PrintStream("../bdd/conversations/"+newFile.getName());
+							historyFilename = newFile.getName();
+							//Add entry in index.csv
+							FileWriter index = new FileWriter("../bdd/conversations/index.csv",true);
+							String indexEntry = newFile.getName() + "," + id;
+							for (String idString : idsDestinataires)
+							{
+								indexEntry = indexEntry + "," + idString;
+							}
+							indexEntry = indexEntry + "\r\n";
+							index.write(indexEntry);
+							index.close();
 						}
 						
 						conv = findConversationGroup(idsUsersInGroup);
 						if (conv == null)
 						{
-							conv = new ConversationGroupe(listParticipants,file);
+							System.out.println("Conversation not found");
+							conv = new ConversationGroupe(listParticipants);
+						} else {
+							conv.addSocketToParticipant(id,clientSocket);
 						}
-							
+						listConv.add(conv);	
 						connectedClient.setConversationGroupe(conv);
-						
+						service.updateUserIntheDatabase(connectedClient);				
+						//service.getUserById(id).setConversationGroupe(conv);
 						break;
 					}
 					catch (Exception e)
@@ -145,21 +157,67 @@ public class ClientThread extends Thread {
 			}
 
 			while (true) {
+				for (User u : service.getData().getUsers())
+				{
+					try {
+						if (u.getCurrentConversationGroupe() != null)
+						{
+							System.out.println("[ClientThread.l169] : " + u.getId() + " has a currentConversationGroup");
+						}
+					}
+					catch (Exception e)
+					{
+						System.out.println("[ClientThread.l169] : " + u.getId() + " has no currentConversationGroup");
+					}
+				}
 
+
+
+				System.out.println("Id du user actuel : "+id);
+				
 				//list des ids dans laquelle je suis correspond à la liste des currentsGroupe de chaque destinataire
 				//si une liste d'un destinataire diffère de ma liste alors j'envoie rien à personne par contre j'écris dans 
 				//historique
+
+				//get all keys de chaque participant à ma Conversation. Si différent pour un j'envoie pas mais j écris dans le fichier
 				String line = socIn.readLine();
-				for(Socket SocketDest : conv.getRecipients(id)){
-					PrintStream SocOutOtherClient = new PrintStream(SocketDest.getOutputStream());
-					SocOutOtherClient.println("[" + connectedClient.getPseudo() + "]: " + line);
+				if(line != null && line.compareTo("-q")!=0){
+					line = "[" + connectedClient.getPseudo() + "]: " + line;
+					System.out.println("This message is about to get sent : " + line);
+					Map<String,Socket> getMapDest = conv.getRecipients(id);
+					String dest = new String();
+					for (String tmp : getMapDest.keySet())
+					{
+						dest = dest + tmp + ",";
+					}
+					System.out.println("These are the destinataires : " + dest);
+					for(String unIdDestinataire : this.idsDest){
+						Socket s = getMapDest.get(unIdDestinataire);
+						//if(isInMyCurrentGroup(id, service.getUserById(pair).getCurrentConversationGroupe().getDicParticipantsInConversation().keySet() , conv.getDicParticipantsInConversation().keySet()) == false) System.out.println("isInGroup is null");
+						if(unIdDestinataire != this.id && s != null && isInMyCurrentGroup(id, service.getUserById(unIdDestinataire).getCurrentConversationGroupe().getDicParticipantsInConversation().keySet() , conv.getDicParticipantsInConversation().keySet())){
+							PrintStream SocOutOtherClient = new PrintStream(getMapDest.get(unIdDestinataire).getOutputStream());
+							SocOutOtherClient.println(line);							
+						}
+						else if (s == null)
+						{
+							System.out.println("Erreur : s est null");
+						}
+					}
+
+					//ecrire dans le bon fichier d'historique le message envoyé
+					service.persistMessage(line, historyFilename);
+				}
+				else {
+					break;
 				}
 
-				//ecrire dans le fichier d'historique le message envoyé
-
-
-
 			}
+			
+			//handle disconnection
+			clientSocket.close();
+			SocketsList.remove(clientSocket);
+			dicSocket.remove(id);
+			
 		} catch (Exception e) {
 			System.err.println("Error in EchoServer:" + e);
 		}
@@ -193,10 +251,10 @@ public class ClientThread extends Thread {
 	}
 
 	public ConversationGroupe findConversationGroup(List<String> listIds){
+		
+		Set<String> setListIds = new HashSet<>(listIds);		
 		for(ConversationGroupe convG : listConv){
 			var idSet = convG.getDicParticipantsInConversation().keySet();
-
-			Set<String> setListIds = new HashSet<>(listIds);
 
 			if(idSet.equals(setListIds)) return convG;
 		}
@@ -204,4 +262,27 @@ public class ClientThread extends Thread {
 		
 	}
 
+	public String[] getAllIds(String[] pseudos){
+		String[] idsDestinataires = new String[pseudos.length];
+		int i = 0;
+		for(String pseudo : pseudos){
+			idsDestinataires[i] = service.getIdGivenPseudo(pseudo);
+			i++;
+		}
+		return idsDestinataires;
+	}
+
+	public boolean isInMyCurrentGroup(String myId, Set <String>setParticipantInConvDest,Set <String> setParticipantInConv){
+		System.out.println("[ClientThread.isInMyCurrenrGroup]"+setParticipantInConvDest.toString());
+		System.out.println("[ClientThread.isInMyCurrentGroup"+setParticipantInConv.toString());
+		//User destinataireUser = service.getUserById(idDest);
+		//System.out.println("Utilisateur destinataire : "+destinataireUser.getId()+ " "+destinataireUser.getPseudo());
+		//if(setParticipantInConvDest.getCurrentConversationGroupe() == null) System.out.println("NUUUUL");
+		//System.out.println("Dic du destinataire :"+destinataireUser.getCurrentConversationGroupe().getDicParticipantsInConversation().toString()); //we never set the convGroupe to the user
+		//Set <String> setUserGroupDestinataire = destinataireUser.getCurrentConversationGroupe().getDicParticipantsInConversation().keySet(); //ERROR
+		if(setParticipantInConvDest.equals(setParticipantInConv)) return true;
+	
+
+		return true;
+	}
 }
