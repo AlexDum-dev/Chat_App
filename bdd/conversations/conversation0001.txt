@@ -1,6 +1,10 @@
 [adumarquez] coucou
 [hlebon] coucou
-[hlebon]: message de h vers a
-[adumarquez]: message de a vers h
-[hlebon]: aaaaaa
+[adumarquez]: test
 [hlebon]: test
+[hlebon]: test
+[adumarquez]: hello
+[hlebon]: c'est bien
+[hlebon]: ca marche assez bien
+[adumarquez]: c'est vraiment pas mal
+[hlebon]: ok la dinz

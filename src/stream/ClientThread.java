@@ -194,7 +194,7 @@ public class ClientThread extends Thread {
 					for(String unIdDestinataire : this.idsDest){
 						Socket s = getMapDest.get(unIdDestinataire);
 						//if(isInMyCurrentGroup(id, service.getUserById(pair).getCurrentConversationGroupe().getDicParticipantsInConversation().keySet() , conv.getDicParticipantsInConversation().keySet()) == false) System.out.println("isInGroup is null");
-						if(unIdDestinataire != this.id && s != null && isInMyCurrentGroup(id, service.getUserById(unIdDestinataire).getCurrentConversationGroupe().getDicParticipantsInConversation().keySet() , conv.getDicParticipantsInConversation().keySet())){
+						if(unIdDestinataire != this.id && s != null && isInMyCurrentGroup(id, service.getUserById(unIdDestinataire).getCurrentConversationGroupe().getDicParticipantsInConversation().keySet(), conv.getDicParticipantsInConversation().keySet())){
 							PrintStream SocOutOtherClient = new PrintStream(getMapDest.get(unIdDestinataire).getOutputStream());
 							SocOutOtherClient.println(line);							
 						}
@@ -283,6 +283,6 @@ public class ClientThread extends Thread {
 		if(setParticipantInConvDest.equals(setParticipantInConv)) return true;
 	
 
-		return true;
+		return false;
 	}
 }
