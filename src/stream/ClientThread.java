@@ -194,7 +194,7 @@ public class ClientThread extends Thread {
 					for(String unIdDestinataire : this.idsDest){
 						Socket s = getMapDest.get(unIdDestinataire);
 						//if(isInMyCurrentGroup(id, service.getUserById(pair).getCurrentConversationGroupe().getDicParticipantsInConversation().keySet() , conv.getDicParticipantsInConversation().keySet()) == false) System.out.println("isInGroup is null");
-						if(unIdDestinataire != this.id && s != null && isInMyCurrentGroup(id, service.getUserById(unIdDestinataire).getCurrentConversationGroupe().getDicParticipantsInConversation().keySet(), conv.getDicParticipantsInConversation().keySet())){
+						if(unIdDestinataire != this.id && s != null && isInMyCurrentGroup(id,unIdDestinataire, conv.getDicParticipantsInConversation().keySet())){
 							PrintStream SocOutOtherClient = new PrintStream(getMapDest.get(unIdDestinataire).getOutputStream());
 							SocOutOtherClient.println(line);							
 						}
@@ -208,15 +208,23 @@ public class ClientThread extends Thread {
 					service.persistMessage(line, historyFilename);
 				}
 				else {
-					break;
+					//handle disconnection
+					disconnect();
+					System.out.println(id+" want to disconnect");
+					try{
+						clientSocket.close();
+					} catch(Exception e){
+						System.err.println(e);
+					}
+					SocketsList.remove(clientSocket);
+					dicSocket.remove(id);
+					System.out.println("Thread has been closed for : "+id);
+					return;
 				}
 
 			}
 			
-			//handle disconnection
-			clientSocket.close();
-			SocketsList.remove(clientSocket);
-			dicSocket.remove(id);
+			
 			
 		} catch (Exception e) {
 			System.err.println("Error in EchoServer:" + e);
@@ -272,17 +280,33 @@ public class ClientThread extends Thread {
 		return idsDestinataires;
 	}
 
-	public boolean isInMyCurrentGroup(String myId, Set <String>setParticipantInConvDest,Set <String> setParticipantInConv){
-		System.out.println("[ClientThread.isInMyCurrenrGroup]"+setParticipantInConvDest.toString());
-		System.out.println("[ClientThread.isInMyCurrentGroup"+setParticipantInConv.toString());
+	public boolean isInMyCurrentGroup(String myId, String unIdDestinataire,Set <String> setParticipantInConv){
+		//System.out.println("[ClientThread.isInMyCurrenrGroup]"+setParticipantInConvDest.toString());
+		//System.out.println("[ClientThread.isInMyCurrentGroup"+setParticipantInConv.toString());
 		//User destinataireUser = service.getUserById(idDest);
 		//System.out.println("Utilisateur destinataire : "+destinataireUser.getId()+ " "+destinataireUser.getPseudo());
 		//if(setParticipantInConvDest.getCurrentConversationGroupe() == null) System.out.println("NUUUUL");
 		//System.out.println("Dic du destinataire :"+destinataireUser.getCurrentConversationGroupe().getDicParticipantsInConversation().toString()); //we never set the convGroupe to the user
 		//Set <String> setUserGroupDestinataire = destinataireUser.getCurrentConversationGroupe().getDicParticipantsInConversation().keySet(); //ERROR
+		User destinataire = service.getUserById(unIdDestinataire);
+		if(destinataire.getCurrentConversationGroupe() == null) return false;
+		Set<String> setParticipantInConvDest = destinataire.getCurrentConversationGroupe().getDicParticipantsInConversation().keySet();
 		if(setParticipantInConvDest.equals(setParticipantInConv)) return true;
 	
 
 		return false;
+	}
+
+	public void disconnect(){
+		System.out.println(id+" want to disconnect");
+		try{
+			clientSocket.close();
+		} catch(Exception e){
+			System.err.println(e);
+		}
+			SocketsList.remove(clientSocket);
+			dicSocket.remove(id);
+			connectedClient.setConversationGroupe(null);
+			service.updateUserIntheDatabase(connectedClient);
 	}
 }

@@ -88,7 +88,7 @@ public class EchoClient {
         cl.start();
         while (true) {
         	line=stdIn.readLine();
-        	if (line.equals(".")) break;
+        	if (line.equals("-q")) break;
         	socOut.println(line);
         }
 

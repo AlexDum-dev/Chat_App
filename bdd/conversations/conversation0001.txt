@@ -8,3 +8,25 @@
 [hlebon]: ca marche assez bien
 [adumarquez]: c'est vraiment pas mal
 [hlebon]: ok la dinz
+[hlebon]: test
+[adumarquez]: tt
+[hlebon]: tt
+[hlebon]: gg
+[adumarquez]: test
+[adumarquez]: tt
+[adumarquez]: coucou a->h
+[adumarquez]: stop ici
+[hlebon]: c
+[adumarquez]: stop ici pour a
+[adumarquez]: coucou
+[adumarquez]: stop ici pour a
+[adumarquez]: test
+[hlebon]: envoie de h->a
+[hlebon]: coucou
+[adumarquez]: salut
+[adumarquez]: stop pour a
+[hlebon]: coucou de hugo
+[adumarquez]: coucou de alexandre
+[adumarquez]: stop pour a 
+[hlebon]: je continue de parler
+[adumarquez]: et je me reconnecte

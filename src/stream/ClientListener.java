@@ -17,7 +17,7 @@ public class ClientListener extends Thread {
         System.out.println(line);
       }
     } catch (Exception e) {
-      System.err.println("Error in EchoServer:" + e);
+      //System.err.println("Error in ClientListener:" + e);
     }
   }
 
