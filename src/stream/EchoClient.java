@@ -38,6 +38,14 @@ public class EchoClient {
 	        socOut= new PrintStream(echoSocket.getOutputStream());
 	        stdIn = new BufferedReader(new InputStreamReader(System.in));
 
+
+            System.out.println("Welcome in this chat application !");
+            System.out.println("Commands : "); 
+            System.out.println("--connected    -> to print the pseudo of connected users");
+            System.out.println("--change-group -> to change your current conversation group");
+            System.out.println("--disconnect   -> to leave the application");
+            System.out.println("***********************************************************");
+            System.out.println("Please authenticate : ");
 	        //Authentification :
             //Basic authentication
             while (true)
@@ -54,10 +62,16 @@ public class EchoClient {
                     System.out.println(response);
                     //ask to who he wants to talk : 
                     while (true){
+                        /*
                         System.out.println("With which user(s) do you want to talk ?");
                         System.out.println("(Specify each person with comma separated please.)");
                         String pseudosDestinataires = stdIn.readLine();
                         //String idsDestinataires = stdIn.readLine();
+                        socOut.println(pseudosDestinataires);
+                        */
+                        System.out.println(socIn.readLine());
+                        System.out.println(socIn.readLine());
+                        String pseudosDestinataires = stdIn.readLine();
                         socOut.println(pseudosDestinataires);
                         if (socIn.readLine().compareTo("Input is good") == 0)
                         {

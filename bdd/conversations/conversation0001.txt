@@ -30,3 +30,19 @@
 [adumarquez]: stop pour a 
 [hlebon]: je continue de parler
 [adumarquez]: et je me reconnecte
+[hlebon]: coucou
+[adumarquez]: coucou
+[adumarquez]: hlebon
+[hlebon]: adumarquez
+[hlebon]: aa
+[adumarquez]: aa
+[adumarquez]: --change-groupe
+[hlebon]: coucou
+[adumarquez]: test envoie de a->h
+[hlebon]: cocuou
+[adumarquez]: cocuou
+[adumarquez]: test de alexandre vers Hugo
+[hlebon]: coucou de h a
+[adumarquez]: coucou a vers h
+[adumarquez]: aa
+[hlebon]: -change-group

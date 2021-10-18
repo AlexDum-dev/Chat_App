@@ -14,7 +14,7 @@ import java.util.*;
 import Model.*;
 import Service.Service;
 
-public class ClientThread extends Thread {
+public class ClientThreadV2 extends Thread {
 
 	private Socket clientSocket;
 	private List<Socket> SocketsList;
@@ -25,8 +25,9 @@ public class ClientThread extends Thread {
 	List<ConversationGroupe> listConv;
 	private String historyFilename = null;
 	private List<String> idsDest;
+    
 
-	ClientThread(Socket s, List<Socket> SocketsList, Map<String, Socket> dicSocket, List<ConversationGroupe> conversationGroupe, Service service) {
+	ClientThreadV2(Socket s, List<Socket> SocketsList, Map<String, Socket> dicSocket, List<ConversationGroupe> conversationGroupe, Service service) {
 		this.clientSocket = s;
 		this.SocketsList = SocketsList;
 		this.dicSocket = dicSocket;
@@ -78,103 +79,10 @@ public class ClientThread extends Thread {
 				}
 			}
 
+			chooseUsers();
+            
 			while (true) {
-				String[] pseudosDestinataire = socIn.readLine().split(",");
-				String[] idsDestinataires = getAllIds(pseudosDestinataire);
-				//String[] idsDestinataires = socIn.readLine().split(",");
-				List<String> idsUsersInGroup = new ArrayList<>();
-				for(String s : idsDestinataires){
-					idsUsersInGroup.add(s);
-				}
-				idsUsersInGroup.add(id);
-				this.idsDest = idsUsersInGroup;
-				
-				if(isInputCorrect(idsDestinataires)){
-					socOut.println("Input is good");
-					//dicSocket.put(id, clientSocket);
-					Map<String, Socket> listParticipants = new HashMap<>();
-				
-					for(String idDestinataire : idsDestinataires){
-						Socket SocketParticipant = isConnected(idDestinataire);
-						/*
-						if(SocketParticipant != null){
-							listParticipants.put(idDestinataire, SocketParticipant);
-						}
-						*/
-						listParticipants.put(idDestinataire, SocketParticipant);
-					}
-					listParticipants.put(id, clientSocket); //put the actual client
-
-					String filename = service.getConversationFilename(listParticipants.keySet().toArray());
-					List<String> history = service.loadMessages(id, Arrays.asList(idsDestinataires));
-					if(history != null){
-						displayMessages(history, socOut);
-					}
-					historyFilename = filename;
-
-					try {
-						if (filename == null) 
-						{
-							UUID uuid = UUID.randomUUID();
-							File newFile = new File("../bdd/conversations/"+uuid.toString() + ".txt");
-							newFile.createNewFile();
-							historyFilename = newFile.getName();
-							//Add entry in index.csv
-							FileWriter index = new FileWriter("../bdd/conversations/index.csv",true);
-							String indexEntry = newFile.getName() + "," + id;
-							for (String idString : idsDestinataires)
-							{
-								indexEntry = indexEntry + "," + idString;
-							}
-							indexEntry = indexEntry + "\r\n";
-							index.write(indexEntry);
-							index.close();
-						}
-						
-						conv = findConversationGroup(idsUsersInGroup);
-						if (conv == null)
-						{
-							System.out.println("Conversation not found");
-							conv = new ConversationGroupe(listParticipants);
-						} else {
-							conv.addSocketToParticipant(id,clientSocket);
-						}
-						listConv.add(conv);	
-						connectedClient.setConversationGroupe(conv);
-						service.updateUserIntheDatabase(connectedClient);				
-						//service.getUserById(id).setConversationGroupe(conv);
-						break;
-					}
-					catch (Exception e)
-					{
-						System.out.println("Message de l'exception : " + e.getMessage());
-					}
-					
-				}
-				
-				socOut.println("Non valid user");
-				
-			}
-
-			while (true) {
-				for (User u : service.getData().getUsers())
-				{
-					try {
-						if (u.getCurrentConversationGroupe() != null)
-						{
-							System.out.println("[ClientThread.l169] : " + u.getId() + " has a currentConversationGroup");
-						}
-					}
-					catch (Exception e)
-					{
-						System.out.println("[ClientThread.l169] : " + u.getId() + " has no currentConversationGroup");
-					}
-				}
-
-
-
-				System.out.println("Id du user actuel : "+id);
-				
+				conv = service.getUserById(id).getCurrentConversationGroupe();
 				String line = socIn.readLine();
 
 				boolean isCommand = readInput(line);
@@ -314,7 +222,6 @@ public class ClientThread extends Thread {
     {
 		boolean isCommand = false;
 		PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
-		BufferedReader socIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         switch(input)
         {
             case "--connected":
@@ -328,8 +235,9 @@ public class ClientThread extends Thread {
 				}
                 break;
             case "--change-group":
+                leaveGroup();
+                chooseUsers();
 				isCommand = true;
-				waitUsers();
                 break;
 			case "--disconnect":
 				isCommand = true;
@@ -344,18 +252,97 @@ public class ClientThread extends Thread {
 	 * @throws IOException
 	 * 
 	 */
-	public void waitUsers() throws IOException{
-		while(true){
-			PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
-			BufferedReader socIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	public void chooseUsers() throws IOException{
+        PrintStream socOut = new PrintStream(clientSocket.getOutputStream());
+		BufferedReader socIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        ConversationGroupe conv = service.getUserById(id).getCurrentConversationGroupe();
 
-			socOut.println("With which user(s) do you want to talk ?");
-            socOut.println("(Specify each person with comma separated please.)");
+        socOut.println("With which user(s) do you want to talk ?");
+        socOut.println("(Specify each person with comma separated please.)");
+        while (true) {
+            String[] pseudosDestinataire = socIn.readLine().split(",");
+            String[] idsDestinataires = getAllIds(pseudosDestinataire);
+            //String[] idsDestinataires = socIn.readLine().split(",");
+            List<String> idsUsersInGroup = new ArrayList<>();
+            for(String s : idsDestinataires){
+                idsUsersInGroup.add(s);
+            }
+            idsUsersInGroup.add(id);
+            this.idsDest = idsUsersInGroup;
+            
+            if(isInputCorrect(idsDestinataires)){
+                socOut.println("Input is good");
+                //dicSocket.put(id, clientSocket);
+                Map<String, Socket> listParticipants = new HashMap<>();
+            
+                for(String idDestinataire : idsDestinataires){
+                    Socket SocketParticipant = isConnected(idDestinataire);
+                    /*
+                    if(SocketParticipant != null){
+                        listParticipants.put(idDestinataire, SocketParticipant);
+                    }
+                    */
+                    listParticipants.put(idDestinataire, SocketParticipant);
+                }
+                listParticipants.put(id, clientSocket); //put the actual client
 
-			String[] users = socIn.readLine().split(",");
-		}
+                String filename = service.getConversationFilename(listParticipants.keySet().toArray());
+                List<String> history = service.loadMessages(id, Arrays.asList(idsDestinataires));
+                if(history != null){
+                    displayMessages(history, socOut);
+                }
+                historyFilename = filename;
+
+                try {
+                    if (filename == null) 
+                    {
+                        UUID uuid = UUID.randomUUID();
+                        File newFile = new File("../bdd/conversations/"+uuid.toString() + ".txt");
+                        newFile.createNewFile();
+                        historyFilename = newFile.getName();
+                        //Add entry in index.csv
+                        FileWriter index = new FileWriter("../bdd/conversations/index.csv",true);
+                        String indexEntry = newFile.getName() + "," + id;
+                        for (String idString : idsDestinataires)
+                        {
+                            indexEntry = indexEntry + "," + idString;
+                        }
+                        indexEntry = indexEntry + "\r\n";
+                        index.write(indexEntry);
+                        index.close();
+                    }
+                    
+                    conv = findConversationGroup(idsUsersInGroup);
+                    if (conv == null)
+                    {
+                        System.out.println("Conversation not found");
+                        conv = new ConversationGroupe(listParticipants);
+                    } else {
+                        conv.addSocketToParticipant(id,clientSocket);
+                    }
+                    listConv.add(conv);	
+                    connectedClient.setConversationGroupe(conv);
+                    service.updateUserIntheDatabase(connectedClient);				
+                    //service.getUserById(id).setConversationGroupe(conv);
+                    break;
+                }
+                catch (Exception e)
+                {
+                    System.out.println("Message de l'exception : " + e.getMessage());
+                }
+                
+            }
+            
+            socOut.println("Non valid user");
+            
+        }
 
 	}
 
+    public void leaveGroup(){
+        connectedClient.setConversationGroupe(null);
+        service.updateUserIntheDatabase(connectedClient);
+        this.historyFilename = null;
+    }
 
 }
