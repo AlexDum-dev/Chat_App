@@ -102,7 +102,7 @@ public class EchoClient {
         cl.start();
         while (true) {
         	line=stdIn.readLine();
-        	if (line.equals("-q")) break;
+        	if (line.equals("--disconnect")) break;
         	socOut.println(line);
         }
 

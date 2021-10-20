@@ -75,8 +75,6 @@ class DESDecrypter {
     } catch (IllegalBlockSizeException e) {
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
-    } catch (java.io.IOException e) {
-      e.printStackTrace();
     }
     return null;
   }
