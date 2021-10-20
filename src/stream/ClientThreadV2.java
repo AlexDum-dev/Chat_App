@@ -86,7 +86,7 @@ public class ClientThreadV2 extends Thread {
 				String line = socIn.readLine();
 
 				boolean isCommand = readInput(line);
-				if(line != null && line.compareTo("-q")!=0 && isCommand == false){
+				if(line != null && isCommand == false){
 					line = "[" + connectedClient.getPseudo() + "]: " + line;
 					System.out.println("This message is about to get sent : " + line);
 					Map<String,Socket> getMapDest = conv.getRecipients(id);

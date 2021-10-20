@@ -1,5 +1,6 @@
 package Utils;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -74,8 +75,6 @@ class DESDecrypter {
       e.printStackTrace();
     } catch (IllegalBlockSizeException e) {
     } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    } catch (java.io.IOException e) {
       e.printStackTrace();
     }
     return null;
