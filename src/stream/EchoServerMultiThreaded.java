@@ -40,7 +40,7 @@ public class EchoServerMultiThreaded  {
                 Socket clientSocket = listenSocket.accept();
                 SocketsList.add(clientSocket);
                 //System.out.println("Connexion from:" + clientSocket.getInetAddress());
-                ClientThreadV2 ct = new ClientThreadV2(clientSocket , SocketsList, dicSocket, conversationGroupes,service);
+                ClientThread ct = new ClientThread(clientSocket , SocketsList, dicSocket, conversationGroupes,service);
                 //ClientThreadList.add(ct);
                 ct.start();
                 /*
