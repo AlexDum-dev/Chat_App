@@ -140,7 +140,6 @@ public class ClientThreadV2 extends Thread {
 	}
 
 	public boolean checkDoublon(String[] ids){
-
 		Set<String> setIds = Set.of(ids);
 		if(setIds.size() != ids.length) return false;
 
@@ -170,6 +169,10 @@ public class ClientThreadV2 extends Thread {
 		int i = 0;
 		for(String pseudo : pseudos){
 			idsDestinataires[i] = service.getIdGivenPseudo(pseudo);
+			if (idsDestinataires[i] == null)
+			{
+				return null;
+			}
 			i++;
 		}
 		return idsDestinataires;
@@ -261,25 +264,18 @@ public class ClientThreadV2 extends Thread {
         while (true) {
 			socOut.println("With which user(s) do you want to talk ?");
         	socOut.println("(Specify each person with comma separated please.)");
-			String[] pseudosDestinataire = null;
-			String[] idsDestinataires = null;
+
 			List<String> idsUsersInGroup = new ArrayList<>();
-			try {
-				pseudosDestinataire = socIn.readLine().split(",");
-				 idsDestinataires = getAllIds(pseudosDestinataire);
-				   //String[] idsDestinataires = socIn.readLine().split(",");
-            	for(String s : idsDestinataires){
-                	idsUsersInGroup.add(s);
-            	}
-            	idsUsersInGroup.add(id);
-            	this.idsDest = idsUsersInGroup;
-
-
-			} catch (Exception e) {
-				//TODO: handle exception
+			String[] pseudosDestinataire = socIn.readLine().split(",");
+			String[] idsDestinataires = getAllIds(pseudosDestinataire);
+			if (idsDestinataires != null){
+				for(String s : idsDestinataires){
+					idsUsersInGroup.add(s);
+				}
+				idsUsersInGroup.add(id);
+				this.idsDest = idsUsersInGroup;
 			}
-          
-            
+                        
             if(isInputCorrect(idsDestinataires)){
                 socOut.println("Input is good");
                 //dicSocket.put(id, clientSocket);
