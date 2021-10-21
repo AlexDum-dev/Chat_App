@@ -1,8 +1,0 @@
-[adumarquez]: coucou elod
-[elod]: test de elod vers alexandre
-[adumarquez]: test de alexandre verd elod
-[adumarquez]: redeuxième test a->e
-[elod]: test
-[elod]: test encore
-[elod]: aa
-[adumarquez]: aa

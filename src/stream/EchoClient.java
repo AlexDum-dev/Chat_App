@@ -76,6 +76,8 @@ public class EchoClient {
                         if (socIn.readLine().compareTo("Input is good") == 0)
                         {
                             break;
+                        } else {
+                            System.out.println("Non valid user(s), please try again.");
                         }
                     }
                     

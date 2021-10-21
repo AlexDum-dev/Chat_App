@@ -34,7 +34,8 @@ public class Data {
 
     }
 
-    private void initInfosConversation() throws IOException {
+    public void initInfosConversation() throws IOException {
+        this.infosConversations.clear();
         BufferedReader conversationInfos = new BufferedReader(new FileReader("../bdd/conversations/index.csv"));
         String infoConversationLine;
         String[] infos;

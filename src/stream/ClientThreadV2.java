@@ -134,7 +134,7 @@ public class ClientThreadV2 extends Thread {
 
 	public boolean isInputCorrect(String[] ids){
 
-		if (checkDoublon(ids) && service.checkIfIdsExist(ids)) return true;
+		if (ids != null && checkDoublon(ids) && service.checkIfIdsExist(ids)) return true;
 		
 		return false;
 	}
@@ -257,18 +257,28 @@ public class ClientThreadV2 extends Thread {
 		BufferedReader socIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         ConversationGroupe conv = service.getUserById(id).getCurrentConversationGroupe();
 
-        socOut.println("With which user(s) do you want to talk ?");
-        socOut.println("(Specify each person with comma separated please.)");
+        
         while (true) {
-            String[] pseudosDestinataire = socIn.readLine().split(",");
-            String[] idsDestinataires = getAllIds(pseudosDestinataire);
-            //String[] idsDestinataires = socIn.readLine().split(",");
-            List<String> idsUsersInGroup = new ArrayList<>();
-            for(String s : idsDestinataires){
-                idsUsersInGroup.add(s);
-            }
-            idsUsersInGroup.add(id);
-            this.idsDest = idsUsersInGroup;
+			socOut.println("With which user(s) do you want to talk ?");
+        	socOut.println("(Specify each person with comma separated please.)");
+			String[] pseudosDestinataire = null;
+			String[] idsDestinataires = null;
+			List<String> idsUsersInGroup = new ArrayList<>();
+			try {
+				pseudosDestinataire = socIn.readLine().split(",");
+				 idsDestinataires = getAllIds(pseudosDestinataire);
+				   //String[] idsDestinataires = socIn.readLine().split(",");
+            	for(String s : idsDestinataires){
+                	idsUsersInGroup.add(s);
+            	}
+            	idsUsersInGroup.add(id);
+            	this.idsDest = idsUsersInGroup;
+
+
+			} catch (Exception e) {
+				//TODO: handle exception
+			}
+          
             
             if(isInputCorrect(idsDestinataires)){
                 socOut.println("Input is good");
@@ -310,6 +320,7 @@ public class ClientThreadV2 extends Thread {
                         indexEntry = indexEntry + "\r\n";
                         index.write(indexEntry);
                         index.close();
+						service.getData().initInfosConversation();
                     }
                     
                     conv = findConversationGroup(idsUsersInGroup);
