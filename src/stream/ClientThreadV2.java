@@ -140,9 +140,10 @@ public class ClientThreadV2 extends Thread {
 	}
 
 	public boolean checkDoublon(String[] ids){
+		
 		Set<String> setIds = Set.of(ids);
 		if(setIds.size() != ids.length) return false;
-
+		if(setIds.contains(this.id)) return false;
 		return true;
 	}
 

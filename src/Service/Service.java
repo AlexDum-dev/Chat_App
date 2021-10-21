@@ -146,6 +146,7 @@ public class Service {
     public boolean checkIfIdsExist(String[] ids){
         List<User> listUser = data.getUsers();
         
+        
         for(String id : ids){
             Boolean userExists = false;
             for(User u : listUser){
